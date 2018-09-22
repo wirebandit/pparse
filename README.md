@@ -1,7 +1,7 @@
 # pparse
 Utility to Process a File, Text Blob, or URL string for proofpoint URLS
 
-##usage:
+## usage:
 
 pparse [-f] [-b] [-u] [-o | -O] file | url
 

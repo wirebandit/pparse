@@ -12,6 +12,7 @@ __status__ = "Development"
 
 import argparse
 import logging
+import re
 from urllib.parse import parse_qs, unquote, urlparse
 
 
@@ -34,14 +35,33 @@ logging.basicConfig(
 
 def translate_url(data):
     try:
-        logging.DEBUG('Attempting to decode URL')
+        logging.DEBUG('Decoding URL..')
         decoded = unquote(parse_qs(urlparse(url).query)['u'][0].translate(str.maketrans('-_', '%/')))
+        logging.INFO('Decoded URL: {}'.format(decoded))
         return decoded
     except Exception as e:
+        logging.DEBUG('Error decoding URL: "{}"'.format(data))
         logging.CRITICAL('Error while parsing URL: {}'.format(e))
 
-def parse_text()
-    #TODO add regex to parse string for proofpoint url
+
+
+def parse_text(data):
+    logging.DEBUG('URL Found in string. Making attempt to decode.')
+    regex = re.compile('https://urldefense\.proofpoint\.com/v\d/url\?\S+=', re.IGNORECASE)
+    cleaned_string = re.sub(regex, lambda m: translate_url(m.group()), data)
+    return cleaned_string
+
+
+def findall_url(data):
+    regex = re.compile('https://urldefense\.proofpoint\.com/v\d/url\?\S+=', re.IGNORECASE)
+    while True:
+        if re.search(regex, data):
+            data = parse_text(data)
+            continue
+        else:
+            break
+    return data
+
 
 def write_out():
     #TODO add function to write to file
@@ -51,7 +71,7 @@ def main(arguments):
 
     # Setup arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', '--file', dest='in_file',help='File to parse')
+    parser.add_argument('-f', '--file', dest='in_file', help='File to parse')
     parser.add_argument('-b', '--blob', dest='in_blob', help='Accepts a blob of text surround in quotes')
     parser.add_argument('-u', '--url', dest='in_url', help='Url to parse')
     parser.add_argument('-o', '--outfile', dest='out_file', help='Filename of output file')
@@ -61,6 +81,16 @@ def main(arguments):
 
 
     args = parser.parse_args(arguments)
+
+    # TODO perform functions on input
+    if in_file:
+        pass
+    elif in_blob:
+        pass
+    elif in_url:
+
+
+
 
 
 

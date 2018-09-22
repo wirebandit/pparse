@@ -40,7 +40,6 @@ def translate_url(data):
         logging.INFO('Decoded URL: {}'.format(decoded))
         return decoded
     except Exception as e:
-        logging.DEBUG('Error decoding URL: "{}"'.format(data))
         logging.CRITICAL('Error while parsing URL: {}'.format(e))
 
 

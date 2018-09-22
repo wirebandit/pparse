@@ -12,6 +12,7 @@ __status__ = "Development"
 
 import argparse
 import logging
+from urllib.parse import parse_qs, unquote, urlparse
 
 
 ## SECTION - Logging
@@ -23,7 +24,7 @@ else:
     debug_level = 'INFO'
 
 # Create basic logging
-logger=logging.basicConfig(
+logging.basicConfig(
         level=debug_level
         filename=debug_file,
         filemode='a',
@@ -31,7 +32,19 @@ logger=logging.basicConfig(
 
 ## SECTION - Functions
 
+def translate_url(data):
+    try:
+        logging.DEBUG('Attempting to decode URL')
+        decoded = unquote(parse_qs(urlparse(url).query)['u'][0].translate(str.maketrans('-_', '%/')))
+        return decoded
+    except Exception as e:
+        logging.CRITICAL('Error while parsing URL: {}'.format(e))
 
+def parse_text()
+    #TODO add regex to parse string for proofpoint url
+
+def write_out():
+    #TODO add function to write to file
 
 
 def main(arguments):

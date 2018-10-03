@@ -3,7 +3,7 @@ Utility to Process a File, Text Blob, or URL string for proofpoint URLS
 
 ## usage:
 
-pparse [-f] [-b] [-u] [-o | -O] file | url
+pparse [-n] [-f] [-b] [-u] [-o | -O] file | url
 
 * Parse a file for URL's and write New file
   * `pparse -f mylogfile.log -o myparsedlogfile.log`
@@ -24,9 +24,10 @@ file        text file with embedded Proofpoint encoded URL's
 url         Proofpoint encoded URL.
   
 optional arguments:
+-n   Do not include "http://" in returned URL
 -f, --file file_name
 -b, --blob <quoted text blob>
--u, --url <url_string...>
+-u, --url <quoted url_string...>
 -O, --overwrite # overwrites input file To be used in conjunction with -f -h --help
 -o, --outfile <outfile name> used with -b or -f
 ```

@@ -3,10 +3,11 @@
 """
 pparse will accept file,text blob, or url string as input. pparse will translate found ProofPoint URL's, replace them, and output to file or stdout
 """
+# TODO: Add support for actual exit codes
 __author__ = ["Matt Rosenberg"]
 __credits__ = ["Matt Rosenberg"]
 __license__ = "GNU GPL v3"
-__version__ = "0.2"
+__version__ = "1.0"
 __maintainer__ = ["Matt Rosenberg"]
 __email__ = ["wirebandit@protonmail.com"]
 __status__ = "Development"
@@ -19,56 +20,63 @@ import sys
 
 # Global Vars
 regex = re.compile('https://urldefense\.proofpoint\.com/v\d/url\?\S+=', re.IGNORECASE)
+decoded_regex = re.compile('https?\://(\S+)', re.IGNORECASE)
 
 
 ## SECTION - Functions
 
-def translate_url(data):
-    try:
-        logging.debug('Decoding URL..')
-        decoded = unquote(parse_qs(urlparse(data).query)['u'][0].translate(str.maketrans('-_', '%/')))
-        logging.info('Decoded URL: {}'.format(decoded))
-        return decoded
-    except Exception as e:
-        logging.error('Error while parsing URL: {}'.format(e))
-        print('Error: {}'.format(e))
+class Pparse():
+    def __init__(self, no_http=False):
+        self.no_http = no_http
 
+    def translate_url(self, data):
+        try:
+            logging.debug('Decoding URL..')
+            decoded_url = unquote(parse_qs(urlparse(data).query)['u'][0].translate(str.maketrans('-_', '%/')))
+            logging.info('Decoded URL: {}'.format(decoded_url))
+            if not self.no_http:
+                return decoded_url
+            else:
+                stripped_decoded = re.search(decoded_regex, decoded_url).groups()
+                return stripped_decoded[0]
+        except Exception as e:
+            logging.error('Error while parsing URL: {}'.format(e))
+            print('Error: {}'.format(e))
 
-def parse_text(data):
-    logging.debug('URL Found in string. Making attempt to decode.')
-    cleaned_string = re.sub(regex, lambda m: translate_url(m.group()), data)
-    return cleaned_string
+    def parse_text(self, data):
+        logging.debug('URL Found in string. Making attempt to decode.')
+        cleaned_string = re.sub(regex, lambda m: self.translate_url(m.group()), data)
+        return cleaned_string
 
+    def findall_url_write(self, data, fh):
+        while True:
+            if re.search(regex, data):
+                data = self.parse_text(data)
+                continue
+            else:
+                try:
+                    fh.write(data)
+                    break
+                except IOError:
+                    logging.error('Error: {}'.format(e))
+                    print('Error: {}'.format(e))
+                    sys.exit(1)
 
-def findall_url_write(data, fh):
-    while True:
-        if re.search(regex, data):
-            data = parse_text(data)
-            continue
-        else:
-            try:
-                fh.write(data)
-                break
-            except IOError:
-                logging.error('Error: {}'.format(e))
-                print('Error: {}'.format(e))
-
-
-# def write_out():
-# TODO add function to write to file
 
 def main(arguments):
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', dest='in_file', help='File to parse')
     parser.add_argument('-b', '--blob', dest='in_blob', help='Accepts a blob of text surround in quotes')
-    parser.add_argument('-u', '--url', dest='in_url', help='Url to parse')
+    parser.add_argument('-u', '--url', dest='in_url', help='Url to parse surrounded with quotes')
     parser.add_argument('-o', '--outfile', dest='out_file', help='Filename of output file')
     parser.add_argument('-O', '--overwrite', dest='overwrite', default=False, action='store_true',
                         help='Overwrites existing file. Use with -f')
+    parser.add_argument('-n', dest='no_http', default=False, action='store_true',
+                        help='Do not include "http://" in returned URL')
     parser.add_argument('--debug', dest='debug', default=False, action='store_true')
     parser.add_argument('--debug_file', dest='debug_file', help='Filename of debuglog')
 
-    args = parser.parse_args()
+    args = parser.parse_args(arguments)
 
     ## SECTION - Logging
     # Set logging level
@@ -91,6 +99,12 @@ def main(arguments):
     logging.info("""
     ============================== START ==============================
     """)
+
+    if args.no_http:
+        pparse = Pparse(no_http=True)
+    else:
+        pparse = Pparse()
+
     if args.in_file:
         # Open File and read contents to list 'data'
         try:
@@ -116,10 +130,14 @@ def main(arguments):
             elif args.out_file:
                 fh = open(args.out_file, 'w')
                 filename = args.out_file
+            else:
+                print('Must use -o or -O with -f')
+                sys.exit(1)
             for line in data_list:
                 logging.debug('Filename set to {}'.format(filename))
-                findall_url_write(line, fh)
+                pparse.findall_url_write(line, fh)
                 logging.info('Succcessfully wrote to {}'.format(filename))
+
         except Exception as e:
             logging.error('ERROR Writing File {}: {}'.format(filename, e))
             print('Error: {}'.format(e))
@@ -130,9 +148,15 @@ def main(arguments):
             ============================== END ==============================
             """)
     elif args.in_blob:
-        pass
+        if args.out_file:
+            fh = open(args.out_file, 'w')
+            pparse.findall_url_write(args.in_blob, fh)
+        else:
+            print(pparse.parse_text(args.in_blob))
+
     elif args.in_url:
-        pass
+        url = pparse.translate_url(args.in_url)
+        print('URL: {}'.format(url))
 
 
 if __name__ == '__main__':

@@ -137,7 +137,7 @@ def main(arguments):
                     pparse.findall_url_write(line, fh)
                     logging.info('Succcessfully wrote to {}'.format(filename))
                 else:
-                    print(pparse.parse_text(line))
+                    sys.stdout.write(pparse.parse_text(line))
         except Exception as e:
             logging.error('ERROR Writing File {}: {}'.format(filename, e))
             print('Error: {}'.format(e))

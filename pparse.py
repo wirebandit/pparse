@@ -130,14 +130,14 @@ def main(arguments):
             elif args.out_file:
                 fh = open(args.out_file, 'w')
                 filename = args.out_file
-            else:
-                print('Must use -o or -O with -f')
-                sys.exit(1)
-            for line in data_list:
-                logging.debug('Filename set to {}'.format(filename))
-                pparse.findall_url_write(line, fh)
-                logging.info('Succcessfully wrote to {}'.format(filename))
 
+            for line in data_list:
+                if args.out_file or args.overwrite:
+                    logging.debug('Filename set to {}'.format(filename))
+                    pparse.findall_url_write(line, fh)
+                    logging.info('Succcessfully wrote to {}'.format(filename))
+                else:
+                    print(pparse.parse_text(line))
         except Exception as e:
             logging.error('ERROR Writing File {}: {}'.format(filename, e))
             print('Error: {}'.format(e))

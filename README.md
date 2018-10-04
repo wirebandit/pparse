@@ -17,6 +17,9 @@ pparse [-n] [-f] [-b] [-u] [-o | -O] file | url
 * Parse a URL String
   * `pparse -u Http://myproofpointed.URL`
   
+* Parse a log file containing ip addresses and write to std out ( Note: -n will remove the leading http:// )
+  * `pparse -n -f mylogfile.txt`
+  
 ```
 Positional arguments:
 
